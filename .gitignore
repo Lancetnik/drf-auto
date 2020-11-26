@@ -1,5 +1,8 @@
 build/
 dist/
+venv/
 *.egg-info
 *.pyc
 *.pypirc
+requirements.txt
+instruction.md
