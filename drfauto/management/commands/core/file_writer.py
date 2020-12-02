@@ -9,6 +9,9 @@ class FileWriter:
     @abstractmethod
     def _set_params(self, app): pass
 
+    @abstractmethod
+    def _custom_imports(self): pass
+
     def __init__(self, model, app):
         self.model = model
         self.file_path = ''
@@ -21,12 +24,14 @@ class FileWriter:
     
     def write_model(self):
         self._construct_imports()
+        self.imports.append('')
+        self.imports.append('')
         self._construct_body()
         with open(self.file_path, 'w') as f:
             f.write(self._as_str())
 
     def _as_str(self):
-        strings = self.imports + self.body
+        strings = self.imports  + self.body
         return '\n'.join(strings)
 
     def _split_file(self):
@@ -40,7 +45,7 @@ class FileWriter:
 
         self.body = list(
             itertools.dropwhile(
-                lambda x: 'class' not in x and 'def' not in x,
+                lambda x: 'class' not in x and 'def' not in x and 'urlpatterns' not in x,
                 strings
             )
         )
@@ -49,34 +54,47 @@ class FileWriter:
         else:
             self.imports = strings[:strings.index(self.body[0])]
 
+        if self.imports:
+            buf = self.imports.pop()
+            while not buf: 
+                if self.imports:
+                    buf = self.imports.pop()
+                else: break
+            self.imports.append(buf)
+        
     def _construct_body(self):
         class_name = self.model._meta.object_name.replace('Model', self.type)
         class_declaration = f"class {class_name}({self.parent}):"
         if class_declaration not in self.body:
-            self.body.append('')
-            self.body.append('')
+            if self.body:
+                self.body.append('')
+                self.body.append('')
             self.body.append(class_declaration)
             self.body.append('    class Meta:')
             self.body.append(f'        model = {self.model._meta.object_name}')
             self.body.append("        fields = '__all__'")
 
+    def _check_custom_import(self, base, name):
+        import_models_string = list(filter(lambda x: f'from .{base}' in x, self.imports))
+        if import_models_string:
+            import_models_string = import_models_string[0]
+            import_models_string_words = [i.rstrip(',') for i in import_models_string.split()]
+            if name not in import_models_string_words:
+                self.imports[self.imports.index(import_models_string)] = import_models_string + f', {name}'
+        else:
+            if self.imports[-1] and not self.imports[-1].split()[1].startswith('.'):
+                self.imports.append('')
+            self.imports.append(f'from .{base} import {name}')
+
     def _construct_imports(self):
         if not self.imports:
-            self.imports.append(self.base_import)
-            self.imports.append('')
-            self.imports.append(f'from .models import {self.model._meta.object_name}')
+            for i in self.base_imports:
+                self.imports.append(i)
         else:
-            if self.base_import not in self.imports:
-                self.imports = [self.base_import, ''] + self.imports
-
-            import_models_string = list(filter(lambda x: 'from .models' in x, self.imports))
-            if import_models_string:
-                import_models_string = import_models_string[0]
-                import_models_string_words = [i.rstrip(',') for i in import_models_string.split()]
-                if self.model._meta.object_name not in import_models_string_words:
-                    self.imports[self.imports.index(import_models_string)] = import_models_string + f', {self.model._meta.object_name}'
-            else: self.imports.append(f'from .models import {self.model._meta.object_name}')
-
+            for base in self.base_imports:
+                if base not in self.imports:
+                    self.imports = [base] + self.imports
+        self._custom_imports()
 
 
 def find_model_by_name(modelname: str) -> dict:

@@ -9,8 +9,8 @@ class Command(AbstractCommand):
     a_help = 'Приложение, для моделей которого необходимо сделать фильтры'
     A_help = 'Создание фильтров для всех моделей ваших приложений'
 
-    def write(self, model, app):
-        FilterWriter(model, app).write_model()
+    def write(self, model_class, app_class, **options):
+        FilterWriter(model_class, app_class).write_model()
 
 
 class FilterWriter(FileWriter):
@@ -18,4 +18,7 @@ class FilterWriter(FileWriter):
         self.file_path = f'{app.path}\\filters.py'
         self.type = 'Filter'
         self.parent = 'filters.FilterSet'
-        self.base_import = 'from django_filters import rest_framework as filters'
+        self.base_imports = ['from django_filters import rest_framework as filters']
+    
+    def _custom_imports(self):
+        self._check_custom_import('models', self.model._meta.object_name)

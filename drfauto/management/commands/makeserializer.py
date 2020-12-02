@@ -9,8 +9,8 @@ class Command(AbstractCommand):
     a_help = 'Приложение, для моделей которого необходимо сделать сериализаторы'
     A_help = 'Создание сериализаторов для всех моделей ваших приложений'
 
-    def write(self, model, app):
-        SerializerWriter(model, app).write_model()
+    def write(self, model_class, app_class, **options):
+        SerializerWriter(model_class, app_class).write_model()
 
 
 class SerializerWriter(FileWriter):
@@ -18,4 +18,7 @@ class SerializerWriter(FileWriter):
         self.file_path = f'{app.path}\\serializers.py'
         self.type = 'Serializer'
         self.parent = 'serializers.ModelSerializer'
-        self.base_import = 'from rest_framework import serializers'
+        self.base_imports = ['from rest_framework import serializers']
+
+    def _custom_imports(self):
+        self._check_custom_import('models', self.model._meta.object_name)

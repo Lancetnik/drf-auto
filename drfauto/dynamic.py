@@ -6,7 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 def serializer(model, **kwargs) -> serializers.ModelSerializer:
     model_name = model._meta.object_name
-    if not kwargs: kwargs['fields'] = "__all__"
+    if not kwargs.get('fields'): kwargs['fields'] = "__all__"
     kwargs['model'] = model
     return type(
             model_name.replace('Model', 'Serializer'),
@@ -21,6 +21,7 @@ def filter(model, **kwargs) -> serializers.ModelSerializer:
     model_name = model._meta.object_name
     fields = {i.name for i in model._meta.fields}
 
+    if not kwargs.get('fields'): kwargs['fields'] = "__all__"
     exclude = kwargs.get('exclude')
     if exclude: fields -= set(exclude)
     fl = kwargs.get('fields')
