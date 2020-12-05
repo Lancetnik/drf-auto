@@ -15,7 +15,7 @@ def makeserializer(model=None, clear=False):
 def makefilter(model=None, clear=False):
     _make(Fcommand(), model, clear)
 
-def makeview(tags=[], model=None, clear=False):
+def makeview(model=None, tags=[], clear=False):
     options = dict()
     options['create'] = 'c' in tags
     options['retrieve'] = 'r' in tags

@@ -1,6 +1,8 @@
 from re import finditer
 
-from .file_writer import FileWriter    
+from .file_writer import FileWriter
+
+from loguru import logger
 
 
 class UrlsWriter(FileWriter):
@@ -37,7 +39,12 @@ class UrlsWriter(FileWriter):
 class ViewConstructor:
     def __init__(self, classname, viewtype: list):
         self.classname = classname
-        self.viewtype = ''.join(filter(lambda x: x != 'View', viewtype))
+        self.viewtype = ''
+        if 'List' in viewtype: self.viewtype += 'List'
+        if 'Create' in viewtype: self.viewtype += 'Create'
+        if 'Retrieve' in viewtype: self.viewtype += 'Retrieve'
+        if 'Update' in viewtype: self.viewtype += 'Update'
+        if 'Destroy' in viewtype: self.viewtype += 'Destroy'
 
     def __str__(self):
         return f'{self.classname} : {self.viewtype}'
@@ -46,9 +53,12 @@ class ViewConstructor:
         return f'{self.classname} : {self.viewtype}'
 
     def to_path(self):
-        return f'    path("{self.classname.lower()}/{self.viewtype.lower()}/", views.{self.classname}{self.viewtype}View.as_view()),'
+        if 'retrieve' in self.viewtype.lower() or 'update' in self.viewtype.lower() or 'destroy' in self.viewtype.lower():
+            return f'    path("{self.classname.lower()}/{self.viewtype.lower()}/<int:pk>/", views.{self.classname}{self.viewtype}View.as_view()),'
+        else:
+            return f'    path("{self.classname.lower()}/{self.viewtype.lower()}/", views.{self.classname}{self.viewtype}View.as_view()),'
 
 
 def camel_case_split(identifier):
-    matches = finditer('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)', identifier)
+    matches = finditer('.+?(?:(?<=[a-z0123456789])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z0123456789])|$)', identifier)
     return [m.group(0) for m in matches]
