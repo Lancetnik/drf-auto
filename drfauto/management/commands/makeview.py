@@ -53,23 +53,16 @@ class ViewWriter(FileWriter):
 
     def _custom_imports(self):
         self._check_custom_import('models', self.model._meta.object_name)
-        self._check_custom_import('serializers', self.model._meta.object_name.replace('Model', 'Serializer')) 
-        self._check_custom_import('filters', self.model._meta.object_name.replace('Model', 'Filter')) 
+        self._check_custom_import('serializers', self._construct_classname('Serializer')) 
+        self._check_custom_import('filters', self._construct_classname('Filter')) 
         
-
-    def _construct_body(self):
-        class_name = self.model._meta.object_name.replace('Model', self.type)
-        class_declaration = f"class {class_name}({self.parent}):"
-        if class_declaration not in self.body:
-            self.body.append('')
-            self.body.append('')
-            self.body.append(class_declaration)
-            self.body.append(f'    queryset = {self.model._meta.object_name}.objects.all()')
-            serializer_name = self.model._meta.object_name.replace('Model', 'Serializer')
-            self.body.append(f'    serializer_class = {serializer_name}')
-            self.body.append(f'    filter_backends = (DjangoFilterBackend,)')
-            filter_name = self.model._meta.object_name.replace('Model', 'Filter')
-            self.body.append(f'    filterset_class = {filter_name}')
+    def _construct_classbody(self):
+        self.body.append(f'    queryset = {self.model._meta.object_name}.objects.all()')
+        serializer_name = self._construct_classname('Serializer')
+        self.body.append(f'    serializer_class = {serializer_name}')
+        self.body.append(f'    filter_backends = (DjangoFilterBackend,)')
+        filter_name = self._construct_classname('Filter')
+        self.body.append(f'    filterset_class = {filter_name}')
 
 
 class CWriter(ViewWriter):

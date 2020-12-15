@@ -60,5 +60,3 @@ def _make(executor, model=None, clear=False, tags=dict()):
         # ищем django приложение, откуда были вызваны функции из этого модуля
         app = list(filter(lambda x: x.path in called_from.filename, apps.get_app_configs()))[0].name
         executor.handle(app=app, **tags)
-    
-        

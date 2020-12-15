@@ -2,8 +2,6 @@ from re import finditer
 
 from .file_writer import FileWriter
 
-from loguru import logger
-
 
 class UrlsWriter(FileWriter):
     def _set_params(self, app):
@@ -18,7 +16,7 @@ class UrlsWriter(FileWriter):
     def _construct_paths(self):
         with open(self.file_path.replace('urls', 'views')) as f:
             views = [camel_case_split(line.split('(')[0].split()[1]) for line in f if line.startswith('class')]
-            return [ViewConstructor(i[0], i[1:]).to_path() for i in views]
+            return [ViewConstructor(i).to_path() for i in views]
                 
     def _construct_body(self):
         if len(self.body) == 1:
@@ -37,14 +35,16 @@ class UrlsWriter(FileWriter):
 
 
 class ViewConstructor:
-    def __init__(self, classname, viewtype: list):
-        self.classname = classname
+    views = ['List', 'Create', 'Retrieve', 'Update', 'Destroy'] # order is important
+
+    def __init__(self, words: list):
         self.viewtype = ''
-        if 'List' in viewtype: self.viewtype += 'List'
-        if 'Create' in viewtype: self.viewtype += 'Create'
-        if 'Retrieve' in viewtype: self.viewtype += 'Retrieve'
-        if 'Update' in viewtype: self.viewtype += 'Update'
-        if 'Destroy' in viewtype: self.viewtype += 'Destroy'
+        for view in self.views:
+            if view in words:
+                self.viewtype += view
+                words.remove(view)
+        words.remove('View')
+        self.classname = ''.join(words)
 
     def __str__(self):
         return f'{self.classname} : {self.viewtype}'

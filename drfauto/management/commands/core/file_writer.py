@@ -20,7 +20,6 @@ class FileWriter:
 
         self._set_params(app)
         self._split_file()
-
     
     def write_model(self):
         self._construct_imports()
@@ -35,6 +34,7 @@ class FileWriter:
         return '\n'.join(strings)
 
     def _split_file(self):
+        ''' разделяет на импорты и тело '''
         try:
             with open(self.file_path, 'r') as f:
                 strings = [line.rstrip('\n') for line in f]
@@ -55,25 +55,35 @@ class FileWriter:
             self.imports = strings[:strings.index(self.body[0])]
 
         if self.imports:
+            # удаляем пустые строки с конца импортов
             buf = self.imports.pop()
             while not buf: 
                 if self.imports:
                     buf = self.imports.pop()
                 else: break
             self.imports.append(buf)
-        
+
+    def _construct_classname(self, newclass):
+        if 'Model' in self.model._meta.object_name:
+            return self.model._meta.object_name.replace('Model', newclass)
+        else:
+            return self.model._meta.object_name + newclass
+
+    def _construct_classbody(self):
+        self.body.append('    class Meta:')
+        self.body.append(f'        model = {self.model._meta.object_name}')
+        self.body.append("        fields = '__all__'")
+
     def _construct_body(self):
-        class_name = self.model._meta.object_name.replace('Model', self.type)
+        class_name = self._construct_classname(self.type)
         class_declaration = f"class {class_name}({self.parent}):"
         if class_declaration not in self.body:
             if self.body:
                 self.body.append('')
                 self.body.append('')
             self.body.append(class_declaration)
-            self.body.append('    class Meta:')
-            self.body.append(f'        model = {self.model._meta.object_name}')
-            self.body.append("        fields = '__all__'")
-
+            self._construct_classbody()
+            
     def _check_custom_import(self, base, name):
         import_models_string = list(filter(lambda x: f'from .{base}' in x, self.imports))
         if import_models_string:
@@ -82,8 +92,9 @@ class FileWriter:
             if name not in import_models_string_words:
                 self.imports[self.imports.index(import_models_string)] = import_models_string + f', {name}'
         else:
-            if self.imports[-1] and not self.imports[-1].split()[1].startswith('.'):
-                self.imports.append('')
+            if self.imports and self.imports[-1]:
+                if not self.imports[-1].split()[1].startswith('.'):
+                    self.imports.append('')
             self.imports.append(f'from .{base} import {name}')
 
     def _construct_imports(self):

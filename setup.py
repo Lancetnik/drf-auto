@@ -3,7 +3,7 @@ from os.path import join, dirname
 
 setup(
     name='drfauto',
-    version=1.4,
+    version='1.5.2',
     description='Package for auto creating serializers, filters and views for Django models',
     author='PasNA6713',
     author_email='diementros@gmail.com',
