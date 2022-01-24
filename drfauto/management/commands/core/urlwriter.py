@@ -1,3 +1,4 @@
+from pathlib import Path
 from re import finditer
 
 from .file_writer import FileWriter
@@ -5,7 +6,7 @@ from .file_writer import FileWriter
 
 class UrlsWriter(FileWriter):
     def _set_params(self, app):
-        self.file_path = f'{app.path}\\urls.py'
+        self.file_path = Path(app.path) / 'urls.py'
         self.base_imports = [
             'from django.urls import path',
         ]
@@ -14,7 +15,7 @@ class UrlsWriter(FileWriter):
         self._check_custom_import('', 'views')
 
     def _construct_paths(self):
-        with open(self.file_path.replace('urls', 'views')) as f:
+        with open(str(self.file_path).replace('urls', 'views')) as f:
             views = [camel_case_split(line.split('(')[0].split()[1]) for line in f if line.startswith('class')]
             return [ViewConstructor(i).to_path() for i in views]
                 

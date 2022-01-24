@@ -10,10 +10,10 @@ from .management.commands.makeview import Command as Vcommand
 
 
 def makeserializer(model=None, clear=False):
-    _make(Scommand(), model, clear)
+    _execute(Scommand(), model, clear)
 
 def makefilter(model=None, clear=False):
-    _make(Fcommand(), model, clear)
+    _execute(Fcommand(), model, clear)
 
 def makeview(model=None, tags=[], clear=False):
     options = dict()
@@ -26,13 +26,12 @@ def makeview(model=None, tags=[], clear=False):
     options['retrieve_update'] = 'ru' in tags
     options['retrieve_destroy'] = 'rd' in tags
     options['retrieve_update_destroy'] = 'rud' in tags
-    _make(Vcommand(), model, clear, options)
+    _execute(Vcommand(), model, clear, options)
 
-def makeall(clear=False):
-    Scommand().handle(all=True)
-    Fcommand().handle(all=True)
-    Vcommand().handle(all=True)
-    if clear: _clear(_catch_call())
+def makeall(model, clear=False):
+    makeserializer(model, False)
+    makefilter(model, False)
+    makeview(model, ['c', 'r', 'u', 'd', 'l'], clear)
 
 def _catch_call():
     # получаем пути файлов из стека вызовов
@@ -51,7 +50,7 @@ def _clear(file):
     with open(path, "w") as f:
         f.write(content)
 
-def _make(executor, model=None, clear=False, tags=dict()):
+def _execute(executor, model=None, clear=False, tags=dict()):
     called_from = _catch_call()
     if clear: _clear(called_from)
     if model:

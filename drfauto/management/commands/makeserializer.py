@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from .core.file_writer import FileWriter
 from .core.command import AbstractCommand
                   
@@ -15,7 +17,7 @@ class Command(AbstractCommand):
 
 class SerializerWriter(FileWriter):
     def _set_params(self, app):
-        self.file_path = f'{app.path}\\serializers.py'
+        self.file_path = Path(app.path) / 'serializers.py'
         self.type = 'Serializer'
         self.parent = 'serializers.ModelSerializer'
         self.base_imports = ['from rest_framework import serializers']

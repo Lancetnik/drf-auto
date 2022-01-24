@@ -50,7 +50,7 @@ def baseView(model, **kwargs):
         (CreateAPIView,),
         {
             'queryset': model.objects.all(),
-            'serializer_class': serializer (
+            'serializer_class': serializer(
                 model,
                 fields=kwargs.get('serializer_fields'),
                 exclude=kwargs.get('serializer_exclude')

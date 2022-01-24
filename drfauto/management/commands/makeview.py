@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from .core.file_writer import FileWriter
 from .core.command import AbstractCommand
 from .core.urlwriter import UrlsWriter
@@ -45,7 +47,7 @@ class Command(AbstractCommand):
 
 class ViewWriter(FileWriter):
     def _set_params(self, app):
-        self.file_path = f'{app.path}\\views.py'
+        self.file_path = Path(app.path) / 'views.py'
         self.base_imports = [
             'from rest_framework import generics',
             'from django_filters.rest_framework import DjangoFilterBackend'
